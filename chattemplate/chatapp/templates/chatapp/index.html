@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Chat</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        #chat-box { height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; }
+        .msg { margin: 8px 0; }
+        .msg.user { text-align: right; color: blue; }
+        .msg.ai { text-align: left; color: green; }
+    </style>
+</head>
+<body>
+    <h1>AI Chat</h1>
+    <div id="chat-box"></div>
+    <form id="chat-form">
+        <input type="text" id="input-message" autocomplete="off" placeholder="Say something..." required>
+        <button type="submit">Send</button>
+    </form>
+    <script>
+        const ws = new WebSocket(
+            (window.location.protocol === "https:" ? "wss://" : "ws://") +
+            window.location.host + "/ws/chat/"
+        );
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            const chatBox = document.getElementById("chat-box");
+            const msgDiv = document.createElement("div");
+            msgDiv.className = "msg " + data.sender;
+            msgDiv.textContent = data.sender === "user" ? "You: " + data.message : "AI: " + data.message;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        };
+
+        document.getElementById("chat-form").onsubmit = function(e) {
+            e.preventDefault();
+            const input = document.getElementById("input-message");
+            const msg = input.value;
+            ws.send(JSON.stringify({message: msg}));
+            input.value = "";
+        };
+    </script>
+</body>
+</html>
